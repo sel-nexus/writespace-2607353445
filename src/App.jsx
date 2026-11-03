@@ -6,7 +6,8 @@ import LandingPage from './pages/LandingPage.jsx';
 import ReadBlog from './pages/ReadBlog.jsx';
 import Home from './pages/Home.jsx';
 import WriteBlog from './pages/WriteBlog.jsx';
-import { getSession } from './utils/storage.js';
+import AdminDashboard from './pages/AdminDashboard.jsx';
+import UserManagement from './pages/UserManagement.jsx';
 
 /**
  * Route the static single-page application.
@@ -19,8 +20,8 @@ export default function App() {
       <Route path="/login" element={<ProtectedRoute guestOnly><LoginPage /></ProtectedRoute>} />
       <Route path="/register" element={<ProtectedRoute guestOnly><RegisterPage /></ProtectedRoute>} />
       <Route path="/blogs" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-      <Route path="/admin" element={<ProtectedRoute adminOnly><main className="p-8"><h1 className="text-3xl font-bold">Admin dashboard</h1><p className="mt-2 text-slate-600">Administration tools are available here.</p></main></ProtectedRoute>} />
-      <Route path="/users" element={<ProtectedRoute adminOnly><main className="p-8"><h1 className="text-3xl font-bold">Manage users</h1></main></ProtectedRoute>} />
+      <Route path="/admin" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/users" element={<ProtectedRoute adminOnly><UserManagement /></ProtectedRoute>} />
       <Route path="/blog/:id" element={<ReadBlog />} />
       <Route path="/write" element={<ProtectedRoute><WriteBlog /></ProtectedRoute>} />
       <Route path="/edit/:id" element={<ProtectedRoute><WriteBlog /></ProtectedRoute>} />
