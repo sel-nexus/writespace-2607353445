@@ -5,6 +5,7 @@ import RegisterPage from './pages/RegisterPage.jsx';
 import LandingPage from './pages/LandingPage.jsx';
 import ReadBlog from './pages/ReadBlog.jsx';
 import Home from './pages/Home.jsx';
+import WriteBlog from './pages/WriteBlog.jsx';
 import { getSession } from './utils/storage.js';
 
 /**
@@ -21,8 +22,8 @@ export default function App() {
       <Route path="/admin" element={<ProtectedRoute adminOnly><main className="p-8"><h1 className="text-3xl font-bold">Admin dashboard</h1><p className="mt-2 text-slate-600">Administration tools are available here.</p></main></ProtectedRoute>} />
       <Route path="/users" element={<ProtectedRoute adminOnly><main className="p-8"><h1 className="text-3xl font-bold">Manage users</h1></main></ProtectedRoute>} />
       <Route path="/blog/:id" element={<ReadBlog />} />
-      <Route path="/write" element={<ProtectedRoute><Navigate to="/blogs" replace /></ProtectedRoute>} />
-      <Route path="/edit/:id" element={<ProtectedRoute><Navigate to="/blogs" replace /></ProtectedRoute>} />
+      <Route path="/write" element={<ProtectedRoute><WriteBlog /></ProtectedRoute>} />
+      <Route path="/edit/:id" element={<ProtectedRoute><WriteBlog /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
