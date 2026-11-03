@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './support.js';
 
 const posts = [
   { id: 'older', title: 'A note from last week', content: 'An earlier thought.', createdAt: '2026-02-01T00:00:00.000Z', authorId: 'owner', authorName: 'Mira Sol' },
@@ -19,18 +19,14 @@ async function signInUser(page) {
 }
 
 test('member sees newest-first posts and can read the whole post with preserved newlines', async ({ page }) => {
-  const errors: string[] = [];
-  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
-  page.on('pageerror', (error) => errors.push(error.message));
   await signInUser(page);
   const titles = await page.locator('section[aria-label="All blog posts"] h2').allTextContents();
   expect(titles).toEqual(['A thought from today', 'Another writer’s note', 'A note from last week']);
   await page.getByRole('link', { name: /A thought from today/ }).click();
   await expect(page.getByText('First line\n\nSecond line in the full post.')).toBeVisible();
-  await expect(page.getByText('Mira Sol')).toBeVisible();
+  await expect(page.locator('article').getByText('Mira Sol', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Edit post' })).toHaveCount(1);
   await expect(page.getByRole('button', { name: 'Delete' })).toHaveCount(1);
-  expect(errors).toEqual([]);
 });
 
 test('member cannot edit or delete another author post; guest detail is protected', async ({ page }) => {
@@ -40,16 +36,27 @@ test('member cannot edit or delete another author post; guest detail is protecte
   await expect(page.getByRole('link', { name: 'Edit post' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Delete' })).toHaveCount(0);
   await page.evaluate(() => localStorage.removeItem('writespace_session'));
-  await page.goto('/blog/newer');
+  await page.reload();
   await expect(page).toHaveURL(/\/login$/);
 });
 
-test('confirmed delete removes an owned post, cancellation preserves it, and logout clears session', async ({ page }) => {
+test('confirmed delete removes an owned post from its detail page, cancellation preserves it, and logout clears session', async ({ page }) => {
   await signInUser(page);
-  page.on('dialog', (dialog) => dialog.accept());
-  await page.getByRole('button', { name: 'Delete', exact: true }).first().click();
+  await page.getByRole('link', { name: /A thought from today/ }).click();
+  await expect(page.getByRole('heading', { name: 'A thought from today' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Delete', exact: true })).toBeVisible();
+
+  page.once('dialog', (dialog) => dialog.dismiss());
+  await page.getByRole('button', { name: 'Delete', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'A thought from today' })).toBeVisible();
+  let stored = await page.evaluate(() => JSON.parse(localStorage.getItem('writespace_posts') || '[]'));
+  expect(stored.map((item: { id: string }) => item.id)).toEqual(['older', 'newer', 'others']);
+
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.getByRole('button', { name: 'Delete', exact: true }).click();
+  await expect(page).toHaveURL(/\/blogs$/);
   await expect(page.getByRole('heading', { name: 'A thought from today' })).toHaveCount(0);
-  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('writespace_posts') || '[]'));
+  stored = await page.evaluate(() => JSON.parse(localStorage.getItem('writespace_posts') || '[]'));
   expect(stored.map((item: { id: string }) => item.id)).toEqual(['older', 'others']);
   await page.getByRole('button', { name: 'Logout' }).click();
   await expect(page).toHaveURL('/');

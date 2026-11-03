@@ -75,7 +75,7 @@ export default function LandingPage() {
               {session && <Link to="/blogs" className="font-semibold text-indigo-700 underline-offset-4 hover:underline">Browse all posts</Link>}
             </div>
             {posts.length === 0 ? (
-              <p className="mt-10 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center text-slate-600">No posts yet - check back soon!</p>
+              <p className="mt-10 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center text-slate-600">No posts yet — check back soon!</p>
             ) : (
               <div className="mt-9 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                 {posts.map((post, index) => {

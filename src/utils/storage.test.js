@@ -1,10 +1,39 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { clearSession, getPosts, getSession, getUsers, savePosts, saveUsers, setSession } from './storage.js';
+import { clearSession, getInitialPosts, getPosts, getSession, getUsers, savePosts, saveUsers, setSession } from './storage.js';
 
 describe('local storage helpers', () => {
   afterEach(() => {
     window.localStorage.clear();
     vi.restoreAllMocks();
+  });
+
+  it('returns stored posts unchanged when valid posts already exist', () => {
+    const posts = [{ id: 'saved-post', title: 'Saved title', content: 'Saved content' }];
+    const storedValue = JSON.stringify(posts);
+    window.localStorage.setItem('writespace_posts', storedValue);
+
+    expect(getInitialPosts()).toEqual(posts);
+    expect(window.localStorage.getItem('writespace_posts')).toBe(storedValue);
+  });
+
+  it('returns and persists seeded posts when the posts key is empty', () => {
+    expect(window.localStorage.getItem('writespace_posts')).toBeNull();
+
+    const posts = getInitialPosts();
+
+    expect(posts.map(({ id }) => id)).toEqual(['welcome-to-writespace', 'notes-on-noticing', 'the-first-draft']);
+    expect(JSON.parse(window.localStorage.getItem('writespace_posts'))).toEqual(posts);
+  });
+
+  it('returns seeded posts without throwing when persisting them fails', () => {
+    const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('quota'); });
+
+    let posts;
+    expect(() => { posts = getInitialPosts(); }).not.toThrow();
+
+    expect(posts.map(({ id }) => id)).toEqual(['welcome-to-writespace', 'notes-on-noticing', 'the-first-draft']);
+    expect(window.localStorage.getItem('writespace_posts')).toBeNull();
+    setItem.mockRestore();
   });
 
   it('round trips posts, users, and a valid session', () => {

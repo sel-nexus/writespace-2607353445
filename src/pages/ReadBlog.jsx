@@ -1,7 +1,8 @@
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
 import { canManagePost } from '../utils/auth.js';
-import { formatDate, getPosts, getSession } from '../utils/storage.js';
+import { formatDate, getPosts, getSession, savePosts } from '../utils/storage.js';
 
 /**
  * Show a post detail to signed-in readers and route guests to login.
@@ -9,6 +10,8 @@ import { formatDate, getPosts, getSession } from '../utils/storage.js';
  */
 export default function ReadBlog() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const [deleteError, setDeleteError] = useState('');
   const session = getSession();
   const post = getPosts().find((item) => item.id === id);
   if (!session) return <Navigate to="/login" replace state={{ from: `/blog/${encodeURIComponent(id ?? '')}` }} />;
@@ -27,6 +30,23 @@ export default function ReadBlog() {
   }
 
   const canEdit = canManagePost(session, post);
+
+  /**
+   * Confirm and remove this post from browser storage.
+   * @returns {void} Navigates away only after the removal is saved.
+   */
+  function handleDelete() {
+    if (!window.confirm('Delete this post? This action cannot be undone.')) return;
+
+    const remainingPosts = getPosts().filter((item) => item.id !== post.id);
+    if (!savePosts(remainingPosts)) {
+      setDeleteError('Unable to delete this post. Check local storage settings and try again.');
+      return;
+    }
+
+    navigate('/blogs');
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
       <Navbar session={session} />
@@ -39,8 +59,10 @@ export default function ReadBlog() {
           <div className="mt-8 whitespace-pre-wrap break-words text-base leading-8 text-slate-700">{post.content}</div>
           <div className="mt-10 flex flex-wrap gap-3 border-t border-slate-100 pt-6">
             {canEdit && <Link to={`/edit/${encodeURIComponent(post.id)}`} className="rounded-lg border border-indigo-200 px-4 py-2 font-semibold text-indigo-700 hover:bg-indigo-50">Edit post</Link>}
+            {canEdit && <button type="button" onClick={handleDelete} className="rounded-lg border border-red-200 px-4 py-2 font-semibold text-red-700 hover:bg-red-50">Delete</button>}
             <Link to="/blogs" className="rounded-lg px-4 py-2 font-semibold text-slate-600 hover:bg-slate-100">Back to All Posts</Link>
           </div>
+          {deleteError && <p role="alert" className="mt-4 text-sm font-medium text-red-700">{deleteError}</p>}
         </article>
       </main>
     </div>

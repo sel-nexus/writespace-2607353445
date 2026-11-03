@@ -1,9 +1,7 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './support.js';
 
 test('guest registers, remains signed in after reload, and can log out', async ({ page }) => {
-  const browserErrors: string[] = [];
-  page.on('pageerror', (error) => browserErrors.push(error.message));
-  await page.goto('/register');
+    await page.goto('/register');
   await page.getByLabel('Display Name').fill('Mira Sol');
   await page.getByLabel('Username').fill('mira');
   await page.getByLabel('Password', { exact: true }).fill('demo-pass');
@@ -11,14 +9,14 @@ test('guest registers, remains signed in after reload, and can log out', async (
   await page.getByRole('button', { name: 'Create account' }).click();
   await expect(page).toHaveURL(/\/blogs$/);
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Your reading space' })).toBeVisible();
-  await page.evaluate(() => localStorage.removeItem('writespace_session'));
-  await page.goto('/login');
+  await expect(page.getByRole('heading', { name: 'All Blogs' })).toBeVisible();
+  await page.getByRole('button', { name: 'Logout' }).click();
+  await expect(page).toHaveURL('/');
+  await page.getByRole('link', { name: 'Login' }).first().click();
   await page.getByLabel('Username').fill('mira');
   await page.getByLabel('Password').fill('demo-pass');
   await page.getByRole('button', { name: 'Login' }).click();
   await expect(page).toHaveURL(/\/blogs$/);
-  expect(browserErrors).toEqual([]);
 });
 
 test('invalid credentials show an inline error and admin login opens admin home', async ({ page }) => {
@@ -30,7 +28,7 @@ test('invalid credentials show an inline error and admin login opens admin home'
   await page.getByLabel('Password').fill('admin');
   await page.getByRole('button', { name: 'Login' }).click();
   await expect(page).toHaveURL(/\/admin$/);
-  await expect(page.getByRole('heading', { name: 'Admin dashboard' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Welcome, Admin' })).toBeVisible();
 });
 
 test('registration rejects duplicates and passwords that do not match', async ({ page }) => {

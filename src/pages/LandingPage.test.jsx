@@ -14,7 +14,7 @@ describe('public landing page', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Your thoughts. Your space. Beautifully simple.' })).toBeTruthy();
     expect(screen.getAllByRole('link', { name: 'Login' })[0].getAttribute('href')).toBe('/login');
     expect(screen.getByRole('link', { name: 'Get Started' }).getAttribute('href')).toBe('/register');
-    expect(screen.getByText('No posts yet - check back soon!')).toBeTruthy();
+    expect(screen.getByText('No posts yet — check back soon!')).toBeTruthy();
     expect(screen.getByText(/not secure or private/i)).toBeTruthy();
     expect(screen.getByRole('navigation', { name: 'Footer navigation' })).toBeTruthy();
   });

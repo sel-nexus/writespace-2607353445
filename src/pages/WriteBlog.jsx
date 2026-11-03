@@ -61,7 +61,7 @@ export default function WriteBlog() {
           <form className="mt-8 space-y-6" onSubmit={handleSubmit} noValidate>
             <div>
               <label htmlFor="post-title" className="mb-2 block text-sm font-semibold text-slate-800">Title</label>
-              <input id="post-title" name="title" value={title} onChange={(event) => setTitle(event.target.value)} aria-required="true" aria-invalid={Boolean(errors.title)} aria-describedby={errors.title ? 'title-error' : undefined} className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/30" />
+              <input id="post-title" name="title" autoComplete="off" value={title} onChange={(event) => setTitle(event.target.value)} aria-required="true" aria-invalid={Boolean(errors.title)} aria-describedby={errors.title ? 'title-error' : undefined} className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/30" />
               {errors.title && <p id="title-error" role="alert" className="mt-2 text-sm text-red-700">{errors.title}</p>}
             </div>
             <div>

@@ -28,6 +28,30 @@ describe('post authoring', () => {
     expect(JSON.parse(window.localStorage.getItem('writespace_posts'))).toEqual([]);
   });
 
+  it('validates title and content independently when the other field is valid', () => {
+    renderEditor('/write');
+    fireEvent.change(screen.getByLabelText('Content'), { target: { value: 'Valid content' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Publish post' }));
+    expect(screen.getByText('Enter a title.')).toBeTruthy();
+    expect(screen.queryByText('Enter some content.')).toBeNull();
+    fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Valid title' } });
+    fireEvent.change(screen.getByLabelText('Content'), { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Publish post' }));
+    expect(screen.queryByText('Enter a title.')).toBeNull();
+    expect(screen.getByText('Enter some content.')).toBeTruthy();
+    expect(JSON.parse(window.localStorage.getItem('writespace_posts'))).toEqual([]);
+  });
+
+  it('rejects whitespace-only title and content without changing storage', () => {
+    renderEditor('/write');
+    fireEvent.change(screen.getByLabelText('Title'), { target: { value: ' \t ' } });
+    fireEvent.change(screen.getByLabelText('Content'), { target: { value: ' \n ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Publish post' }));
+    expect(screen.getByText('Enter a title.')).toBeTruthy();
+    expect(screen.getByText('Enter some content.')).toBeTruthy();
+    expect(JSON.parse(window.localStorage.getItem('writespace_posts'))).toEqual([]);
+  });
+
   it('creates an attributed post and navigates to the saved post', () => {
     vi.stubGlobal('crypto', { randomUUID: () => 'created-id' });
     vi.useFakeTimers();

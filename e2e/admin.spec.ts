@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './support.js';
 
 const post = { id: 'admin-post', title: 'Admin review note', content: 'This post is available for review.', createdAt: '2026-03-04T12:00:00.000Z', authorId: 'member', authorName: 'Mira Sol' };
 
@@ -15,17 +15,18 @@ async function openAdmin(page) {
 }
 
 test('admin sees statistics and recent post tools, then manages an account', async ({ page }) => {
-  const errors: string[] = [];
-  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
-  page.on('pageerror', (error) => errors.push(error.message));
   await openAdmin(page);
   await expect(page.getByRole('heading', { name: 'Welcome, Admin' })).toBeVisible();
   await expect(page.getByText('Total Posts')).toBeVisible();
-  await expect(page.getByText('Total Users')).toBeVisible();
+  await expect(page.getByText('Total Users', { exact: true })).toBeVisible();
   await expect(page.getByText('Total Admins')).toBeVisible();
-  await expect(page.getByText('Total users')).toBeVisible();
+  await expect(page.getByText('Total users', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Edit' })).toHaveAttribute('href', '/edit/admin-post');
-  await page.getByRole('link', { name: 'Manage Users' }).click();
+  await page.getByRole('link', { name: 'Edit' }).click();
+  await expect(page.getByRole('heading', { name: 'Edit post' })).toBeVisible();
+  await page.getByRole('link', { name: 'Back to All Posts' }).click();
+  await expect(page).toHaveURL('/blogs');
+  await page.getByRole('link', { name: 'Users', exact: true }).click();
   await page.getByLabel('Display Name').fill('Niko Vale');
   await page.getByLabel('Username').fill('niko');
   await page.getByLabel('Password').fill('demo-pass');
@@ -34,7 +35,6 @@ test('admin sees statistics and recent post tools, then manages an account', asy
   await expect(page.getByRole('status')).toContainText('Account created for Niko Vale.');
   const users = await page.evaluate(() => JSON.parse(localStorage.getItem('writespace_users') || '[]'));
   expect(users.some((user: { username: string; role: string }) => user.username === 'niko' && user.role === 'admin')).toBe(true);
-  expect(errors).toEqual([]);
 });
 
 test('default and active account cannot be deleted; other account deletion is confirmed', async ({ page }) => {
@@ -52,14 +52,19 @@ test('default and active account cannot be deleted; other account deletion is co
   await nikoRow.getByRole('button', { name: 'Delete' }).click();
   expect(prompts).toHaveLength(1);
   await expect(page.getByText('Account for Niko Vale deleted. Existing posts remain.')).toBeVisible();
-  await expect(page.getByText('Admin review note')).toBeVisible();
+  const remainingPosts = await page.evaluate(() => JSON.parse(localStorage.getItem('writespace_posts') || '[]'));
+  expect(remainingPosts).toContainEqual(post);
 });
 
-test('user and guest routes are denied access to admin screens', async ({ page }) => {
+test('a non-admin visiting the admin-only users route is returned to blogs', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('writespace_session', JSON.stringify({ userId: 'member', username: 'mira', displayName: 'Mira', role: 'user' })));
   await page.goto('/users');
   await expect(page).toHaveURL(/\/blogs$/);
-  await page.evaluate(() => localStorage.removeItem('writespace_session'));
+  await expect(page.getByRole('heading', { name: 'All Blogs' })).toBeVisible();
+});
+
+test('a guest visiting the admin route is sent to login', async ({ page }) => {
   await page.goto('/admin');
   await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
 });

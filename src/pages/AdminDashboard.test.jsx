@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import AdminDashboard from './AdminDashboard.jsx';
 
 afterEach(() => {
@@ -25,6 +25,33 @@ describe('admin dashboard', () => {
     expect(screen.getByLabelText('Total users: 2')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Manage Users' }).getAttribute('href')).toBe('/users');
     expect(screen.getByRole('link', { name: 'Edit' }).getAttribute('href')).toBe('/edit/p1');
+  });
+
+  it('redirects guests from the dashboard to login', () => {
+    render(
+      <MemoryRouter initialEntries={['/admin']}>
+        <Routes>
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/login" element={<p>Login destination</p>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('Login destination')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /Welcome,/ })).not.toBeInTheDocument();
+  });
+
+  it('redirects non-admin users from the dashboard to blogs', () => {
+    window.localStorage.setItem('writespace_session', JSON.stringify({ userId: 'reader-id', username: 'reader', displayName: 'Reader', role: 'user' }));
+    render(
+      <MemoryRouter initialEntries={['/admin']}>
+        <Routes>
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/blogs" element={<p>Blogs destination</p>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('Blogs destination')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /Welcome,/ })).not.toBeInTheDocument();
   });
 
   it('does not delete a post when confirmation is cancelled and reports write failure', () => {
