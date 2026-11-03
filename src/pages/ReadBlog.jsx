@@ -1,5 +1,5 @@
 import { Link, Navigate, useParams } from 'react-router-dom';
-import PublicNavbar from '../components/PublicNavbar.jsx';
+import Navbar from '../components/Navbar.jsx';
 import { canManagePost } from '../utils/auth.js';
 import { formatDate, getPosts, getSession } from '../utils/storage.js';
 
@@ -16,7 +16,7 @@ export default function ReadBlog() {
   if (!post) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-800">
-        <PublicNavbar session={session} />
+        <Navbar session={session} />
         <main className="mx-auto max-w-3xl px-5 py-20 text-center">
           <h1 className="text-3xl font-bold text-slate-900">Post not found</h1>
           <p className="mt-3 text-slate-600">This post may have been removed or its link may be out of date.</p>
@@ -29,7 +29,7 @@ export default function ReadBlog() {
   const canEdit = canManagePost(session, post);
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
-      <PublicNavbar session={session} />
+      <Navbar session={session} />
       <main className="mx-auto max-w-3xl px-5 py-12 sm:px-8 sm:py-16">
         <Link to="/blogs" className="text-sm font-semibold text-indigo-700 underline-offset-4 hover:underline">← Back to All Posts</Link>
         <article className="mt-7 rounded-3xl border border-slate-200 bg-white p-7 shadow-sm sm:p-10">

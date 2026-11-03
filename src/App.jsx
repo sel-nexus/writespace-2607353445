@@ -4,19 +4,20 @@ import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import LandingPage from './pages/LandingPage.jsx';
 import ReadBlog from './pages/ReadBlog.jsx';
+import Home from './pages/Home.jsx';
+import { getSession } from './utils/storage.js';
 
 /**
  * Route the static single-page application.
  * @returns {JSX.Element} Application routes.
  */
 export default function App() {
-  const session = getSession();
-  return (
+    return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<ProtectedRoute guestOnly><LoginPage /></ProtectedRoute>} />
       <Route path="/register" element={<ProtectedRoute guestOnly><RegisterPage /></ProtectedRoute>} />
-      <Route path="/blogs" element={<ProtectedRoute><main className="p-8"><h1 className="text-3xl font-bold">Your reading space</h1><p className="mt-2 text-slate-600">Your blog library will appear here.</p></main></ProtectedRoute>} />
+      <Route path="/blogs" element={<ProtectedRoute><Home /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute adminOnly><main className="p-8"><h1 className="text-3xl font-bold">Admin dashboard</h1><p className="mt-2 text-slate-600">Administration tools are available here.</p></main></ProtectedRoute>} />
       <Route path="/users" element={<ProtectedRoute adminOnly><main className="p-8"><h1 className="text-3xl font-bold">Manage users</h1></main></ProtectedRoute>} />
       <Route path="/blog/:id" element={<ReadBlog />} />
